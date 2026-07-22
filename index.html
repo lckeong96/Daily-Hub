@@ -211,6 +211,9 @@
 <script>
 // 换成你在 Google Cloud Console 建立的 OAuth Client ID（跟 Code.gs 里的 OAUTH_CLIENT_ID 必须一致）
 const CLIENT_ID = '332593136984-sc0ot052islpisbd1f40ejdksdp5bsgi.apps.googleusercontent.com';
+// 换成你部署 Apps Script 拿到的网址（结尾 /exec）。写死在这里之后，
+// 换新设备/浏览器登入完会直接生效，不用再手动贴一次。
+const DEFAULT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx2Nrp-jKp0wnIu4HyQYj2uLqv0e7iHuRznVYMNw-3bcPMDzv7eTcluSSpRNVDUz30iYA/exec';
 const CONFIG_KEY = 'daily-hub-config';
 const PALETTE = [
   {name:'amber', hex:'#e8a94d'}, {name:'rose', hex:'#d4667a'}, {name:'sage', hex:'#7faa8c'},
@@ -218,7 +221,7 @@ const PALETTE = [
   {name:'gold', hex:'#d4a24c'}, {name:'gray', hex:'#8a8f9c'}
 ];
 
-let config = { url:'' };
+let config = { url: DEFAULT_WEB_APP_URL };
 let idToken = null;
 let userEmail = null;
 let state = { tasks:[], categories:[], habits:[], notes:{}, pomodoroLog:[] };
@@ -234,12 +237,13 @@ function uid(){ return Math.random().toString(36).slice(2,9); }
 function todayKey(d=new Date()){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* ================= Config (local, per browser) ================= */
+/* ================= Config (local override, falls back to hardcoded default) ================= */
 async function loadConfig(){
   try{
     const raw = localStorage.getItem(CONFIG_KEY);
-    config = raw ? JSON.parse(raw) : {url:''};
-  }catch(e){ config = {url:''}; }
+    config = raw ? JSON.parse(raw) : { url: DEFAULT_WEB_APP_URL };
+    if(!config.url) config.url = DEFAULT_WEB_APP_URL;
+  }catch(e){ config = { url: DEFAULT_WEB_APP_URL }; }
 }
 function saveConfig(){
   try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }catch(e){}
